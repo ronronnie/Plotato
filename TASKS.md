@@ -74,18 +74,18 @@ Task markers:
 
 ## 6. Recommendation Engine
 
-- [ ] Convert food attributes into viewing profile.
-- [ ] Add TMDb client wrapper.
-- [ ] Retrieve real movie and TV candidates.
-- [ ] Fetch runtime, genres, language, poster, backdrop, and maturity metadata.
-- [ ] Fetch region-aware watch-provider availability.
-- [ ] Filter unavailable providers.
-- [ ] Filter already-seen and rejected titles.
-- [ ] Filter unsupported languages and adult content.
-- [ ] Filter by viewing duration.
-- [ ] Rank candidates using initial weighted formula.
-- [ ] Return exactly one recommendation at a time.
-- [ ] Support spin-again with backup candidates.
+- [x] Convert food attributes into viewing profile.
+- [x] Add TMDb client wrapper.
+- [x] Retrieve real movie and TV candidates from discover endpoints.
+- [x] Fetch runtime, genres, language, poster, backdrop, and maturity metadata.
+- [x] Fetch region-aware watch-provider availability.
+- [x] Filter unavailable providers.
+- [x] Filter already-seen and recently rejected titles.
+- [x] Filter unsupported languages and adult content.
+- [x] Filter by viewing duration.
+- [x] Rank candidates using initial weighted formula.
+- [x] Return one verified recommendation at a time.
+- [x] Keep two verified backup candidates server-side for spin-again.
 
 ## 7. Loading and Result Experience
 
@@ -127,7 +127,7 @@ Task markers:
 - [x] Add unit tests for preference-storage utilities.
 - [x] Add unit tests for core UI states.
 - [x] Add schema, policy, low-confidence, unsafe-image, non-food, and provider-timeout unit tests with mocked upstream calls.
-- [ ] Add recommendation ranking tests.
+- [x] Add recommendation ranking and retrieval fixtures for snack, dinner, provider, feedback, media preference, outage, and missing metadata cases.
 - [x] Add Playwright coverage for valid image upload, invalid file rejection, permission-denied fallback, and typed-food fallback.
 - [ ] Add accessibility checks.
 - [x] Run linting.
@@ -144,3 +144,4 @@ Task markers:
 - [x] Implemented the `/scan` camera and image-selection journey with explicit camera permission request, rear-camera preference, capture preview, flash capability detection, gallery upload, typed-food fallback, client-side image validation, browser re-encoding for compression and metadata stripping, concise privacy copy, and a server-side analysis endpoint.
 - [x] Verified the scan journey with four mobile Chromium Playwright tests.
 - [x] Replaced the image-analysis mock with server-only OpenAI moderation and vision analysis using strict Zod-validated response states, bounded retries, timeouts, and neutral user-facing errors.
+- [x] Added the deterministic TMDb recommendation pipeline with safe AI-assisted reranking limited to verified candidate IDs, regional availability, attribution, filtering, backups, and edge-case fixtures.

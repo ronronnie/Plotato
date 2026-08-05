@@ -47,8 +47,11 @@ lib/
     image-validation.ts
     moderation.ts
     food-analysis.ts
-    recommendation.ts
-    tmdb.ts
+    food-to-viewing-profile.ts
+    tmdb-client.ts
+    candidate-filter.ts
+    candidate-ranker.ts
+    recommendation-service.ts
   shared/
     constants.ts
     schemas.ts
@@ -118,6 +121,8 @@ Output:
 - Available streaming provider.
 - Opaque spin-again token or server-side candidate cache in future versions.
 
+The MVP response contains one verified `primary` result, two server-side `backups`, a playful explanation under 18 words, match tags, provider availability, and TMDb/JustWatch attribution. Raw candidate lists never reach the browser.
+
 ### `POST /api/share-card`
 
 Input:
@@ -175,18 +180,19 @@ Expected structured output:
 ## Recommendation Pipeline
 
 1. Convert food attributes into a viewing profile.
-2. Retrieve real movie and TV candidates from TMDb.
-3. Filter by region and selected streaming providers.
-4. Apply hard exclusions:
+2. Retrieve movie and TV candidates from TMDb discover endpoints with `include_adult=false` and the selected region.
+3. Resolve every candidate's TMDb details and regional watch-provider data before it is considered verified.
+4. Filter by region and selected streaming providers.
+5. Apply hard exclusions:
    - Already seen.
    - Rejected titles.
    - Unavailable providers.
    - Unsupported languages.
    - Adult content when disabled.
    - Runtime above selected limit.
-5. Rank remaining candidates.
-6. Return exactly one winner.
-7. Keep backups server-side or recreate them deterministically for spin-again.
+6. Deterministically rank remaining candidates using meal-tone, provider, runtime, language, feedback, and metadata quality weights.
+7. Optionally let a server-side AI reranker reorder only the verified TMDb IDs; unknown IDs are discarded and deterministic order fills gaps.
+8. Return exactly one winner plus two backups and keep all other candidates server-side.
 
 Initial ranking weights:
 
@@ -213,11 +219,11 @@ TMDb API calls must happen server-side. Client code must not expose TMDb API key
 
 ## Streaming-Provider Availability Flow
 
-1. User preferences define selected providers and region.
-2. Recommendation service queries TMDb watch-provider data for the candidate title.
+1. User preferences define selected providers and region, defaulting to `DEFAULT_WATCH_REGION=IN`.
+2. Recommendation service queries TMDb watch-provider data for each verified candidate.
 3. Candidates unavailable in the selected region or provider set are excluded.
-4. MVP displays provider name and a TMDb or JustWatch availability page when direct provider links are unavailable.
-5. JustWatch attribution requirements must be respected when using provider data supplied through TMDb.
+4. MVP displays provider name and the TMDb watch link when direct provider links are unavailable.
+5. JustWatch attribution is retained in the response because TMDb watch-provider data is supplied through JustWatch.
 
 ## LocalStorage Structure
 
@@ -257,10 +263,12 @@ type FeedbackRecord = {
 
 - `OPENAI_API_KEY` - Server-side OpenAI API key.
 - `OPENAI_VISION_MODEL` - Server-side vision model used for structured food analysis.
-- `TMDB_API_KEY` - Server-side TMDb API key.
 - `NEXT_PUBLIC_APP_URL` - Public site URL for metadata and share links.
 - `IMAGE_MAX_BYTES` - Optional image upload limit.
 - `FOOD_CONFIDENCE_THRESHOLD` - Optional 0-1 confirmation threshold; defaults to `0.65`.
+- `TMDB_READ_ACCESS_TOKEN` - Server-side TMDb v4 bearer token.
+- `DEFAULT_WATCH_REGION` - Default two-letter watch-provider region; defaults to `IN`.
+- `OPENAI_RERANK_MODEL` - Optional server-side model for constrained reranking of verified candidates; deterministic ranking remains the fallback.
 
 No secret environment variable should be exposed to browser bundles.
 
