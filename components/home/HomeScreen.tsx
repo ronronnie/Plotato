@@ -88,7 +88,7 @@ export function HomeScreen() {
           <p className="hero-subtitle">Scan your plate and get one movie or TV match before dinner loses steam.</p>
 
           <div className="hero-actions">
-            <Button onClick={() => setUiState("loading")} size="lg" variant="primary">
+            <Button onClick={() => window.location.assign("/scan")} size="lg" variant="primary">
               Scan my food
             </Button>
             <label className="upload-control">

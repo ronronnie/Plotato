@@ -14,7 +14,7 @@ Task markers:
 - [x] Define shared product constants.
 - [x] Add environment variable documentation.
 - [x] Add lint, type-check, and unit test scripts.
-- [ ] Add end-to-end test script.
+- [x] Add end-to-end test script.
 
 ## 2. Design System
 
@@ -50,26 +50,26 @@ Task markers:
 
 ## 4. Camera and Image Upload
 
-- [ ] Build camera capture screen.
-- [ ] Add custom camera overlay and framing guide.
-- [ ] Add capture, retake, and continue states.
-- [ ] Add gallery upload flow.
-- [ ] Add typed-food fallback from camera failure states.
-- [ ] Handle camera permission denied.
-- [ ] Validate file type on the client.
-- [ ] Validate file size on the client.
-- [ ] Add browser image compression before upload where supported.
+- [x] Build camera capture screen.
+- [x] Add custom camera overlay and framing guide.
+- [x] Add capture, retake, and continue states.
+- [x] Add gallery upload flow.
+- [x] Add typed-food fallback from camera failure states.
+- [x] Handle camera permission denied.
+- [x] Validate file type on the client.
+- [x] Validate file size on the client.
+- [x] Add browser image compression before upload where supported.
 
 ## 5. Moderation and Food Analysis
 
-- [ ] Add server-side upload validation.
+- [~] Add server-side upload validation.
 - [ ] Strip metadata where possible.
 - [ ] Add image moderation using OpenAI server-side.
 - [ ] Return neutral unsafe-image state.
-- [ ] Add food detection.
+- [~] Add food detection.
 - [ ] Return no-food-detected state.
 - [ ] Add low-confidence confirmation state.
-- [ ] Add structured food-analysis schema with Zod.
+- [~] Add structured food-analysis schema with Zod.
 - [ ] Delete original uploaded image after processing.
 
 ## 6. Recommendation Engine
@@ -128,7 +128,7 @@ Task markers:
 - [x] Add unit tests for core UI states.
 - [ ] Add schema validation tests.
 - [ ] Add recommendation ranking tests.
-- [ ] Add Playwright smoke test for mobile journey.
+- [x] Add Playwright coverage for valid image upload, invalid file rejection, permission-denied fallback, and typed-food fallback.
 - [ ] Add accessibility checks.
 - [x] Run linting.
 - [x] Run type checks.
@@ -141,3 +141,5 @@ Task markers:
 ## Completed Work Log
 
 - [x] Scaffolded the mobile-first visual foundation with Plotato metadata, design tokens, responsive shell, reusable UI components, first-run preferences, local preference persistence, mock recent pairings, reduced-motion handling, and unit-test coverage for storage and core UI states.
+- [x] Implemented the `/scan` camera and image-selection journey with explicit camera permission request, rear-camera preference, capture preview, flash capability detection, gallery upload, typed-food fallback, client-side image validation, browser re-encoding for compression and metadata stripping, concise privacy copy, and a temporary mocked analysis endpoint.
+- [x] Verified the scan journey with four mobile Chromium Playwright tests.
