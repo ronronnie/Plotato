@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackEvent } from "@/lib/client/analytics";
 import { Button } from "@/components/ui/Button";
 import { StickerChip } from "@/components/ui/StickerChip";
 import { ShareSheet } from "./ShareSheet";
@@ -69,13 +70,13 @@ export function RecommendationResult({ recommendation, feedbackOpen, onOpenFeedb
           <small>{recommendation.attribution.watchProviders}</small>
         </div>
         <div className="result-actions">
-          <a className="ui-button ui-button-primary ui-button-lg" href={watchUrl} target="_blank" rel="noreferrer" onClick={onSeen}>
+          <a className="ui-button ui-button-primary ui-button-lg" href={watchUrl} target="_blank" rel="noreferrer" onClick={() => { trackEvent("provider_clicked", { provider: provider?.name ?? "unknown" }); onSeen(); }}>
             Watch on {provider?.name ?? "TMDb"}
           </a>
           <div className="result-action-row">
             <Button onClick={onSeen} variant="secondary">Seen it</Button>
             <Button onClick={onSpinAgain} variant="ghost">Spin again</Button>
-            <Button onClick={() => setShareOpen(true)} variant="ghost">Share</Button>
+            <Button onClick={() => { trackEvent("share_started", { mediaType: candidate.mediaType }); setShareOpen(true); }} variant="ghost">Share</Button>
           </div>
           <Button aria-expanded={feedbackOpen} onClick={onOpenFeedback} variant="ghost">
             Not feeling this

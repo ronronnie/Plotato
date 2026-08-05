@@ -76,7 +76,7 @@ export type Recommendation = {
 };
 
 export type RecommendationFailure = {
-  code: "NO_MATCHING_PROVIDER" | "ALL_SEEN" | "NO_CANDIDATES" | "TMDB_OUTAGE" | "NETWORK_ERROR" | "INTERNAL_ERROR";
+  code: "NO_MATCHING_PROVIDER" | "ALL_SEEN" | "NO_CANDIDATES" | "TMDB_OUTAGE" | "NETWORK_ERROR" | "RATE_LIMITED" | "INTERNAL_ERROR";
   message: string;
 };
 

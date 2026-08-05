@@ -8,6 +8,7 @@ import { PopCard } from "@/components/ui/PopCard";
 import { Toast } from "@/components/ui/Toast";
 import { createPreferenceStorage } from "@/lib/client/preference-storage";
 import { useReducedMotionPreference } from "@/lib/client/motion";
+import { trackEvent } from "@/lib/client/analytics";
 import { APP_NAME, DEFAULT_PREFERENCES, MOCK_RECENT_PAIRINGS } from "@/lib/shared/constants";
 import type { RecentPairing, UserPreferences } from "@/lib/shared/types";
 import { PreferencesSheet } from "./PreferencesSheet";
@@ -35,6 +36,10 @@ export function HomeScreen() {
 
     return () => window.clearTimeout(timer);
   }, [storage]);
+
+  useEffect(() => {
+    trackEvent("home_viewed");
+  }, []);
 
   function savePreferences(nextPreferences = preferences) {
     const saved = storage.savePreferences({ ...nextPreferences, onboardingComplete: true });

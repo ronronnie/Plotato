@@ -13,6 +13,7 @@ const labels: Record<Failure["code"], { title: string; body: string }> = {
   NO_MATCHING_PROVIDER: { title: "No clean provider match.", body: "Try another service or let Plotato search wider next time." },
   ALL_SEEN: { title: "You have seen the good stuff.", body: "A fresh spin may find a new corner of the watchlist." },
   NO_CANDIDATES: { title: "This meal needs a wider watchlist.", body: "Try again or tweak your viewing preferences." },
+  RATE_LIMITED: { title: "The plot needs a tiny breather.", body: "Wait a moment, then try the match again." },
   INTERNAL_ERROR: { title: "Plotato lost the plot.", body: "Try one more time, or head back for a fresh scan." },
 };
 

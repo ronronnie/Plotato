@@ -323,3 +323,11 @@ The original food photo is never part of a card by default. When the user explic
 - Do not use copyrighted streaming-service artwork without permission.
 - MVP should use provider names as text placeholders unless licensed assets are available.
 - Generated or CSS placeholder illustrations should avoid copyrighted characters or brand artwork.
+
+## Launch Readiness Controls
+
+- API routes enforce process-local anonymous/IP rate limits, request-size guards, neutral error bodies, and bounded upstream requests. Replace the process-local limiter with a durable distributed limiter before public launch or multi-instance scaling.
+- `worker/index.ts` applies CSP, MIME-sniffing, frame, referrer, permissions, and cross-origin opener headers at the deployment boundary. CSP must be verified against the final production asset and hosting behavior.
+- `lib/server/safe-logging.ts` is the only server logging boundary. It allowlists metadata shape and truncates strings; raw images, food text, API keys, and provider payloads must never enter logs.
+- `lib/client/analytics.ts` sends allowlisted product events to the internal `/api/events` sink. No vendor is hardcoded. The anonymous identifier is random, local-device-only, and not an account identity. Vendor selection, consent, retention, and regional disclosures require privacy review.
+- `/privacy`, `/terms`, and `/attribution` are user-facing MVP surfaces. They explicitly identify legal, privacy, accessibility, security, and licensing review gaps; they do not establish full compliance.

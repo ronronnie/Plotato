@@ -6,6 +6,7 @@ import {
   type FoodAnalysis,
 } from "@/lib/shared/food-analysis";
 import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/client/image-processing";
+import { logServerError } from "./safe-logging";
 
 const MODERATION_MODEL = "omni-moderation-latest";
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -194,8 +195,7 @@ export async function analyzeFoodImage(file: File | null, transport?: OpenAITran
 
     return confidenceResponse(parseFoodAnalysis(getVisionText(vision)), getConfidenceThreshold());
   } catch (error) {
-    console.error("Plotato food analysis provider error", {
-      errorName: error instanceof Error ? error.name : "unknown",
+    logServerError("food_analysis_provider_error", error, {
       mimeType: file.type,
       sizeBytes: file.size,
     });

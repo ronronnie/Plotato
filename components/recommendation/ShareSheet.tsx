@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/lib/client/analytics";
 import { Button } from "@/components/ui/Button";
 import { SHARE_CARD_SIZES, generateShareCard, type ShareCardFormat } from "@/lib/client/share-card";
 import type { ProcessedImage } from "@/lib/client/image-processing";
@@ -67,6 +68,7 @@ export function ShareSheet({ recommendation, foodName, processedFoodImage, onClo
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
         await navigator.share({ title: `Plotato pairing: ${candidate.title}`, text: recommendation.explanation, files: [file], url: shareUrl });
+        trackEvent("share_completed", { format, method: "web_share" });
         setMessage("Card shared. Dinner has a press release now.");
         return;
       }
@@ -79,6 +81,7 @@ export function ShareSheet({ recommendation, foodName, processedFoodImage, onClo
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      trackEvent("share_completed", { format, method: "copy_link" });
       setMessage("Link copied. Send it with the snack.");
     } catch {
       setMessage(`Copy this link: ${shareUrl}`);
@@ -94,6 +97,7 @@ export function ShareSheet({ recommendation, foodName, processedFoodImage, onClo
     link.download = `plotato-${format}.png`;
     link.click();
     URL.revokeObjectURL(url);
+    trackEvent("share_completed", { format, method: "save_image" });
     setMessage("Card saved to this device.");
   }
 

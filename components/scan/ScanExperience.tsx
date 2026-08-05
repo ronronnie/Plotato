@@ -9,6 +9,7 @@ import { RecommendationFailure } from "@/components/recommendation/Recommendatio
 import { RecommendationLoading } from "@/components/recommendation/RecommendationLoading";
 import { RecommendationResult } from "@/components/recommendation/RecommendationResult";
 import { useReducedMotionPreference } from "@/lib/client/motion";
+import { trackEvent } from "@/lib/client/analytics";
 import { createPreferenceStorage } from "@/lib/client/preference-storage";
 import type { AnalysisResponse } from "@/lib/shared/food-analysis";
 import type { FeedbackReason } from "@/lib/shared/types";
@@ -127,6 +128,7 @@ export function ScanExperience() {
   }
 
   async function startCamera() {
+    trackEvent("scan_started");
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraState("unsupported");
       return;
@@ -180,6 +182,7 @@ export function ScanExperience() {
       });
       stopCamera();
       setCameraState("captured");
+      trackEvent("image_captured", { source: "camera" });
     } catch {
       setCameraState("error");
     }
@@ -201,6 +204,7 @@ export function ScanExperience() {
       });
       stopCamera();
       setCameraState("captured");
+      trackEvent("image_captured", { source: "gallery" });
       setAnalysisResponse(null);
       setRecommendationResponse(null);
     } catch {
@@ -245,7 +249,10 @@ export function ScanExperience() {
   function handleAnalysisResponse(payload: AnalysisResponse) {
     setAnalysisResponse(payload);
     setCameraState("complete");
-    if (payload.status === "success") void startRecommendation(payload.analysis);
+    if (payload.status === "success") {
+      trackEvent("food_confirmed", { source: capturedImage ? "image" : "typed" });
+      void startRecommendation(payload.analysis);
+    }
   }
 
   async function startRecommendation(analysis: NonNullable<Extract<AnalysisResponse, { status: "success" }>['analysis']>) {
@@ -267,6 +274,7 @@ export function ScanExperience() {
       const payload = (await response.json()) as RecommendationResponse;
       await keepLoadingVisible();
       setRecommendationResponse(payload);
+      if (payload.status === "success") trackEvent("recommendation_viewed", { mediaType: payload.recommendation.primary.candidate.mediaType });
     } catch {
       await keepLoadingVisible();
       setRecommendationResponse({
@@ -295,6 +303,7 @@ export function ScanExperience() {
       reason,
       createdAt: new Date().toISOString(),
     });
+    if (action === "rejected") trackEvent("recommendation_rejected", { reason: reason ?? "unspecified" });
   }
 
   function handleSeen() {

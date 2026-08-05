@@ -1,0 +1,7 @@
+import Link from "next/link";
+
+export const metadata = { title: "Privacy - Plotato", description: "Plotato MVP privacy information." };
+
+export default function PrivacyPage() {
+  return <main className="info-page"><p className="eyebrow">Plotato privacy</p><h1>Your plate stays yours.</h1><p>Plotato is an MVP. This page explains the intended data handling and is not legal advice or a statement of regulatory compliance.</p><h2>What we process</h2><p>Food images are re-encoded in your browser, sent temporarily for moderation and analysis, and are not intentionally stored as image files by the MVP. Typed food, preferences, feedback, and recent pairings stay in your browser&apos;s local storage.</p><h2>What we do not do</h2><p>We do not require an account, sell personal information, or intentionally send the original image to analytics. Share cards are generated in memory and are not uploaded. Optional food-photo sharing uses only the processed image already in memory.</p><h2>Third-party services</h2><p>OpenAI processes image analysis requests. TMDb supplies title metadata and watch-provider information, with provider data supplied through JustWatch. These vendors have their own terms and privacy policies.</p><h2>Review required</h2><p>Before public launch, a privacy professional should review retention, processor terms, regional requirements, cookie/local-storage disclosures, and the final hosting configuration.</p><Link className="back-to-scan" href="/">Back to Plotato</Link></main>;
+}

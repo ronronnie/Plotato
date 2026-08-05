@@ -139,6 +139,21 @@ Task markers:
 - [x] Review privacy behavior for uploaded images.
 - [ ] Review TMDb and JustWatch attribution requirements.
 
+## 11. Launch Readiness
+
+- [x] Add server-side anonymous/IP rate limiting for analysis, recommendations, and analytics intake.
+- [x] Add JSON and multipart request-size guards.
+- [x] Add production security headers at the Worker boundary.
+- [x] Centralize server logging and exclude raw image/provider payloads.
+- [x] Add vendor-neutral analytics abstraction and required event names.
+- [x] Add privacy, terms placeholder, and attribution pages.
+- [x] Add root error boundary, not-found page, and loading UI.
+- [x] Add client loading-performance sampling without a hardcoded analytics vendor.
+- [x] Add launch README with setup, environment, testing, and deployment instructions.
+- [ ] Replace process-local rate limiting with a durable distributed limiter before public launch.
+- [ ] Complete legal, privacy, accessibility, security, and licensing review.
+- [ ] Run private-beta abuse, load, and assistive-technology testing.
+
 ## Completed Work Log
 
 - [x] Scaffolded the mobile-first visual foundation with Plotato metadata, design tokens, responsive shell, reusable UI components, first-run preferences, local preference persistence, mock recent pairings, reduced-motion handling, and unit-test coverage for storage and core UI states.
@@ -148,3 +163,4 @@ Task markers:
 - [x] Added the deterministic TMDb recommendation pipeline with safe AI-assisted reranking limited to verified candidate IDs, regional availability, attribution, filtering, backups, and edge-case fixtures.
 - [x] Added the analysis-to-recommendation loading and reveal journey with animated/reduced-motion reels, poster fallback, provider actions, sharing, local feedback, retry handling, and error-state Playwright coverage.
 - [x] Added local canvas-generated Story and Square share cards with Web Share, save-image, and copy-link fallbacks. Original food images remain excluded unless the user opts in to using the processed in-memory image.
+- [x] Completed a launch-readiness pass covering API protections, safe logging, analytics abstraction, security headers, privacy/terms/attribution surfaces, error handling, performance sampling, README setup, and documented pre-public-launch limitations.

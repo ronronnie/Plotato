@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { PerformanceReporter } from "@/components/site/PerformanceReporter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100"),
   title: "Plotato",
   description: "Scan a meal and get one playful streaming match.",
   openGraph: {
@@ -30,6 +33,7 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -43,6 +47,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <SiteFooter />
+        <PerformanceReporter />
       </body>
     </html>
   );

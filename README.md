@@ -1,100 +1,71 @@
-# vinext-starter
+# Plotato
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Plotato recommends one movie or TV show to match the food you are eating. It is a mobile-first Next.js App Router application running on vinext and Cloudflare-compatible output.
 
-## Prerequisites
+## Local setup
 
-- Node.js `>=22.13.0`
-
-## Quick Start
+Prerequisite: Node.js `>=22.13.0`.
 
 ```bash
 npm install
 npm run dev
+```
+
+Open the local URL printed by the dev server. Typed food works without provider credentials; image analysis and live TMDb recommendations require the server environment below.
+
+## Environment variables
+
+Create `.env.local` locally. It is ignored by Git. Never use `NEXT_PUBLIC_` for secrets.
+
+```env
+OPENAI_API_KEY=replace-me
+OPENAI_VISION_MODEL=replace-me
+TMDB_READ_ACCESS_TOKEN=replace-me
+DEFAULT_WATCH_REGION=IN
+OPENAI_RERANK_MODEL=replace-me
+FOOD_CONFIDENCE_THRESHOLD=0.65
+IMAGE_MAX_BYTES=8388608
+NEXT_PUBLIC_APP_URL=http://localhost:3100
+```
+
+`OPENAI_API_KEY`, `OPENAI_VISION_MODEL`, `TMDB_READ_ACCESS_TOKEN`, and `OPENAI_RERANK_MODEL` are server-only. Add production values through the hosting provider’s private environment-variable settings, never Git or chat.
+
+## Application surfaces
+
+- `/`: home, onboarding preferences, typed-food entry, local recent pairings.
+- `/scan`: camera, gallery, typed-food analysis, recommendation loading, result, feedback, and share cards.
+- `/privacy`: MVP data-handling notice and review requirements.
+- `/terms`: temporary terms placeholder requiring legal review.
+- `/attribution`: TMDb and JustWatch attribution and licensing review notes.
+
+## Security and privacy controls
+
+API routes use server-side rate limits keyed by client IP and a local anonymous identifier, request-size checks, neutral errors, bounded upstream timeouts, and security response headers. The deployed Worker adds CSP, frame, referrer, permissions, and MIME-sniffing protections. Logs pass through `lib/server/safe-logging.ts`; raw images, food text, provider payloads, and API keys are not logged.
+
+Images are re-encoded in the browser, validated again on the server, moderated before analysis, and held only for the request. Preferences, feedback, recent pairings, and the anonymous analytics identifier are local-device data. Share cards are generated in memory and are not uploaded.
+
+Analytics is an internal event abstraction with no vendor hardcoded. Events are sent to `/api/events` and currently logged as allowlisted event names only. Replace the sink behind `lib/client/analytics.ts` if a vendor is selected after privacy review.
+
+## Commands
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run test:e2e
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+`npm test` runs Vitest unit tests and production render checks. Playwright starts a local dev server and covers the scan, recommendation, error, and share flows.
 
-## Included Shape
+## Deployment
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+Build with `npm run build`. Publish the exact pushed commit through the configured Sites project. Set private runtime environment variables in Sites. Verify production headers, API limits, OpenAI/TMDb connectivity, attribution pages, privacy copy, and provider links before opening access.
 
-## Workspace Auth Headers
+## Launch-readiness status
 
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
+The MVP has baseline protections and test coverage, but this is not a claim of full legal, privacy, accessibility, security, or licensing compliance. Before public launch, obtain legal/privacy/licensing review, add durable distributed rate limiting, run a security assessment, validate the hosting CSP against the final deployment, and complete assistive-technology testing.
 
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
+## Workspace auth
 
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+The starter includes optional Dispatch-owned ChatGPT sign-in helpers in `app/chatgpt-auth.ts`. Plotato currently remains anonymous-compatible and does not require accounts. Do not add account-bound behavior without a separate privacy and data-retention decision.

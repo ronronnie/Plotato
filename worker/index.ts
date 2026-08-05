@@ -40,7 +40,15 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    const headers = new Headers(response.headers);
+    headers.set("content-security-policy", "default-src 'self'; img-src 'self' blob: data: https://image.tmdb.org; connect-src 'self' https://api.openai.com https://api.themoviedb.org; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'");
+    headers.set("x-content-type-options", "nosniff");
+    headers.set("x-frame-options", "DENY");
+    headers.set("referrer-policy", "strict-origin-when-cross-origin");
+    headers.set("permissions-policy", "camera=(self), microphone=(), geolocation=()");
+    headers.set("cross-origin-opener-policy", "same-origin");
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   },
 };
 
