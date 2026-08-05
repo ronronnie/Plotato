@@ -108,6 +108,7 @@ export function ScanExperience() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const reducedMotion = useReducedMotionPreference("system");
   const recommendationStartedAt = useRef(0);
+  const autoSubmittedFood = useRef<string | null>(null);
 
   const recommendationActive = recommendationLoading || recommendationResponse !== null;
 
@@ -223,14 +224,15 @@ export function ScanExperience() {
     }
   }
 
-  async function analyzeTypedFood() {
-    if (!typedFood.trim()) return;
+  async function analyzeTypedFood(foodValue = typedFood) {
+    const normalizedFood = foodValue.trim();
+    if (!normalizedFood) return;
     setCameraState("analyzing");
     try {
       const response = await fetch("/api/analyze-food", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ foodText: typedFood.trim() }),
+        body: JSON.stringify({ foodText: normalizedFood }),
       });
       const payload = (await response.json()) as AnalysisResponse;
       handleAnalysisResponse(payload);
@@ -320,6 +322,16 @@ export function ScanExperience() {
     }
     await navigator.clipboard?.writeText(`${shareData.title} - ${shareData.url}`);
   }
+
+  useEffect(() => {
+    const foodFromHome = searchParams.get("food")?.trim();
+    if (!foodFromHome || autoSubmittedFood.current === foodFromHome) return;
+    autoSubmittedFood.current = foodFromHome;
+    setTypedFood(foodFromHome);
+    void analyzeTypedFood(foodFromHome);
+    // The ref guard intentionally makes this effect run once per food query.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   function retake() {
     if (capturedImage) {
@@ -439,7 +451,7 @@ export function ScanExperience() {
               if (event.key === "Enter") analyzeTypedFood();
             }}
           />
-          <Button onClick={analyzeTypedFood} variant="secondary">
+          <Button onClick={() => void analyzeTypedFood()} variant="secondary">
             Analyze
           </Button>
         </div>

@@ -62,8 +62,7 @@ export function HomeScreen() {
       setToast("Type a food first.");
       return;
     }
-    setUiState("loading");
-    setToast(`Pairing ${foodText.trim()} with a plot.`);
+    window.location.assign(`/scan?food=${encodeURIComponent(foodText.trim())}`);
   }
 
   return (

@@ -59,6 +59,20 @@ async function typeFood(page: Page, food = "masala dosa") {
   await page.getByRole("button", { name: "Analyze" }).click();
 }
 
+test("home typed-food match enters the recommendation journey", async ({ page }) => {
+  await page.route("**/api/recommend", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(successResponse()) });
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Skip for now" }).click();
+  await page.getByLabel("Type the food instead").fill("biryani");
+  await page.getByRole("button", { name: "Match" }).click();
+
+  await expect(page).toHaveURL(/\/scan\?food=biryani/);
+  await expect(page.getByRole("heading", { name: "Butter & Joy" })).toBeVisible();
+});
+
 test("runs the mocked happy path through analysis, loading, reveal, and feedback", async ({ page }) => {
   const recommendationRequests: Array<Record<string, unknown>> = [];
   await page.route("**/api/recommend", async (route) => {
