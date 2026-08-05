@@ -25,13 +25,13 @@ async function render() {
   );
 }
 
-test("server-renders the SnackSpin product shell", async () => {
+test("server-renders the Plotato product shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>SnackSpin<\/title>/i);
+  assert.match(html, /<title>Plotato<\/title>/i);
   assert.match(html, /Set the table\./);
   assert.match(html, /JioHotstar/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
@@ -45,13 +45,13 @@ test("removes starter preview files and keeps product metadata", async () => {
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /SnackSpin/);
+  assert.match(page, /Plotato/);
   assert.match(page, /JioHotstar/);
   assert.match(page, /What are we eating today\?/);
   assert.match(page, /Keep people and private information outside the frame/);
   assert.match(page, /TONIGHT&apos;S PAIRING/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(layout, /title:\s*"SnackSpin"/);
+  assert.match(layout, /title:\s*"Plotato"/);
   assert.match(layout, /images:\s*\["\/og\.png"\]/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 

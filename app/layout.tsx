@@ -13,16 +13,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SnackSpin",
+  title: "Plotato",
   description: "Scan a meal and get one playful streaming match.",
   openGraph: {
-    title: "SnackSpin",
+    title: "Plotato",
     description: "Scan a meal and get one playful streaming match.",
     images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SnackSpin",
+    title: "Plotato",
     description: "Scan a meal and get one playful streaming match.",
     images: ["/og.png"],
   },

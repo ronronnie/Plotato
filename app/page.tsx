@@ -136,8 +136,8 @@ export default function Home() {
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
         <header className="topbar">
           <button className="brand-mark" onClick={() => setScreen("home")} aria-label="Go home">
-            <span>SNACK</span>
-            <strong>SPIN</strong>
+            <span>PLO</span>
+            <strong>TATO</strong>
           </button>
           <div className="service-ticker" aria-label="Selected streaming services">
             {selectedServices.slice(0, 4).map((service) => (
@@ -557,7 +557,7 @@ function ShareCard({
       </div>
       <footer>
         <span>{result.service}</span>
-        <strong>SnackSpin</strong>
+        <strong>Plotato</strong>
       </footer>
     </article>
   );
