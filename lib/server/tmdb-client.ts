@@ -48,7 +48,7 @@ export class TmdbClient {
   }
 
   async getVerifiedCandidate(mediaType: MediaType, id: number, region: string): Promise<VerifiedCandidate | null> {
-    const details = await this.get(`/${mediaType}/${id}?language=en-US`);
+    const details = await this.get(`/${mediaType}/${id}?language=en-US&append_to_response=${mediaType === "movie" ? "release_dates" : "content_ratings"}`);
     const providers = await this.get(`/${mediaType}/${id}/watch/providers`);
     return normalizeCandidate(mediaType, details, providers, region);
   }
@@ -89,6 +89,7 @@ function normalizeCandidate(mediaType: MediaType, details: TmdbRecord, providers
     genres,
     originalLanguage: stringValue(details.original_language) ?? "",
     runtimeMinutes,
+    maturityRating: maturityRating(mediaType, details, region),
     voteAverage: numberValue(details.vote_average) ?? 0,
     voteCount: numberValue(details.vote_count) ?? 0,
     popularity: numberValue(details.popularity) ?? 0,
@@ -126,6 +127,19 @@ function toneTags(genres: number[]) {
     ...(genres.includes(14) || genres.includes(12) ? ["bright"] : []),
     ...(genres.includes(80) || genres.includes(9648) ? ["layered"] : []),
   ];
+}
+
+function maturityRating(mediaType: MediaType, details: TmdbRecord, region: string) {
+  if (mediaType === "movie") {
+    const results = isRecord(details.release_dates) && Array.isArray(details.release_dates.results) ? details.release_dates.results : [];
+    const regionResult = results.find((item) => isRecord(item) && item.iso_3166_1 === region);
+    const releases = regionResult && isRecord(regionResult) && Array.isArray(regionResult.release_dates) ? regionResult.release_dates : [];
+    const certification = releases.map((item) => isRecord(item) ? stringValue(item.certification) : null).find(Boolean);
+    return certification ?? null;
+  }
+  const results = isRecord(details.content_ratings) && Array.isArray(details.content_ratings.results) ? details.content_ratings.results : [];
+  const regionResult = results.find((item) => isRecord(item) && item.iso_3166_1 === region);
+  return regionResult && isRecord(regionResult) ? stringValue(regionResult.rating) : null;
 }
 
 function isRecord(value: unknown): value is TmdbRecord {

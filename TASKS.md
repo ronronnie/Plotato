@@ -89,27 +89,27 @@ Task markers:
 
 ## 7. Loading and Result Experience
 
-- [ ] Build slot-machine loading screen.
-- [ ] Add taste, energy, and commitment reels.
-- [ ] Add rotating loading copy.
-- [ ] Add reduced-motion loading alternative.
-- [ ] Build result screen with poster or backdrop.
-- [ ] Show title, media type, runtime, language, and maturity rating.
-- [ ] Show one-sentence food-to-title explanation.
-- [ ] Show streaming provider availability.
-- [ ] Add main provider CTA.
-- [ ] Avoid prominent review scores.
+- [x] Build slot-machine loading screen.
+- [x] Add taste, energy, and commitment reels.
+- [x] Add rotating loading copy.
+- [x] Add reduced-motion loading alternative.
+- [x] Build result screen with poster or illustrated fallback.
+- [x] Show title, media type, runtime, language, and maturity rating when available.
+- [x] Show one-sentence food-to-title explanation.
+- [x] Show streaming provider availability.
+- [x] Add main provider CTA.
+- [x] Avoid prominent review scores.
 
 ## 8. Feedback and Local History
 
-- [ ] Store lightweight positive signal when provider CTA is pressed.
-- [ ] Add seen action.
-- [ ] Add reject action.
-- [ ] Add rejection reason chips.
+- [x] Store lightweight positive signal when provider CTA is pressed.
+- [x] Add seen action.
+- [x] Add reject action.
+- [x] Add rejection reason chips.
 - [ ] Add save action.
 - [x] Store feedback locally with typed abstraction.
 - [x] Store recent pairings locally.
-- [ ] Apply local feedback to future ranking.
+- [x] Apply local feedback to future ranking.
 
 ## 9. Sharing
 
@@ -129,6 +129,7 @@ Task markers:
 - [x] Add schema, policy, low-confidence, unsafe-image, non-food, and provider-timeout unit tests with mocked upstream calls.
 - [x] Add recommendation ranking and retrieval fixtures for snack, dinner, provider, feedback, media preference, outage, and missing metadata cases.
 - [x] Add Playwright coverage for valid image upload, invalid file rejection, permission-denied fallback, and typed-food fallback.
+- [x] Add Playwright coverage for mocked recommendation reveal, feedback persistence, network errors, TMDb outages, provider misses, and empty recommendation states.
 - [ ] Add accessibility checks.
 - [x] Run linting.
 - [x] Run type checks.
@@ -145,3 +146,4 @@ Task markers:
 - [x] Verified the scan journey with four mobile Chromium Playwright tests.
 - [x] Replaced the image-analysis mock with server-only OpenAI moderation and vision analysis using strict Zod-validated response states, bounded retries, timeouts, and neutral user-facing errors.
 - [x] Added the deterministic TMDb recommendation pipeline with safe AI-assisted reranking limited to verified candidate IDs, regional availability, attribution, filtering, backups, and edge-case fixtures.
+- [x] Added the analysis-to-recommendation loading and reveal journey with animated/reduced-motion reels, poster fallback, provider actions, sharing, local feedback, retry handling, and error-state Playwright coverage.

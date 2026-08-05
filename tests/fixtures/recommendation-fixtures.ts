@@ -41,6 +41,7 @@ export function candidate(overrides: Partial<VerifiedCandidate> = {}): VerifiedC
     genres: [35, 10751],
     originalLanguage: "en",
     runtimeMinutes: 22,
+    maturityRating: "U",
     voteAverage: 7.5,
     voteCount: 500,
     popularity: 50,

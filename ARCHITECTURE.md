@@ -123,6 +123,8 @@ Output:
 
 The MVP response contains one verified `primary` result, two server-side `backups`, a playful explanation under 18 words, match tags, provider availability, and TMDb/JustWatch attribution. Raw candidate lists never reach the browser.
 
+The client starts the recommendation request only after a successful food analysis. It shows three analysis-derived reels while the request is in flight, holds the loading view for only a small configurable minimum, then reveals one result. Reduced-motion users receive static progress steps. Seen and rejected feedback is written to typed LocalStorage and included in subsequent recommendation requests.
+
 ### `POST /api/share-card`
 
 Input:
@@ -269,6 +271,7 @@ type FeedbackRecord = {
 - `TMDB_READ_ACCESS_TOKEN` - Server-side TMDb v4 bearer token.
 - `DEFAULT_WATCH_REGION` - Default two-letter watch-provider region; defaults to `IN`.
 - `OPENAI_RERANK_MODEL` - Optional server-side model for constrained reranking of verified candidates; deterministic ranking remains the fallback.
+- `NEXT_PUBLIC_RECOMMENDATION_MIN_LOADING_MS` - Optional small client-side reveal minimum, capped at 800 ms and defaulting to `280`.
 
 No secret environment variable should be exposed to browser bundles.
 

@@ -37,6 +37,7 @@ export type VerifiedCandidate = {
   genres: number[];
   originalLanguage: string;
   runtimeMinutes: number | null;
+  maturityRating: string | null;
   voteAverage: number;
   voteCount: number;
   popularity: number;
@@ -75,7 +76,7 @@ export type Recommendation = {
 };
 
 export type RecommendationFailure = {
-  code: "NO_MATCHING_PROVIDER" | "ALL_SEEN" | "NO_CANDIDATES" | "TMDB_OUTAGE" | "INTERNAL_ERROR";
+  code: "NO_MATCHING_PROVIDER" | "ALL_SEEN" | "NO_CANDIDATES" | "TMDB_OUTAGE" | "NETWORK_ERROR" | "INTERNAL_ERROR";
   message: string;
 };
 

@@ -5,7 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
+import { RecommendationFailure } from "@/components/recommendation/RecommendationFailure";
+import { RecommendationLoading } from "@/components/recommendation/RecommendationLoading";
+import { RecommendationResult } from "@/components/recommendation/RecommendationResult";
+import { useReducedMotionPreference } from "@/lib/client/motion";
+import { createPreferenceStorage } from "@/lib/client/preference-storage";
 import type { AnalysisResponse } from "@/lib/shared/food-analysis";
+import type { FeedbackReason } from "@/lib/shared/types";
+import type { RecommendationResponse } from "@/lib/server/recommendation-types";
 import {
   ACCEPTED_IMAGE_TYPES,
   processImageFile,
@@ -96,6 +103,13 @@ export function ScanExperience() {
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [typedFood, setTypedFood] = useState("");
   const [analysisResponse, setAnalysisResponse] = useState<AnalysisResponse | null>(null);
+  const [recommendationResponse, setRecommendationResponse] = useState<RecommendationResponse | null>(null);
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const reducedMotion = useReducedMotionPreference("system");
+  const recommendationStartedAt = useRef(0);
+
+  const recommendationActive = recommendationLoading || recommendationResponse !== null;
 
   useEffect(() => {
     return () => {
@@ -119,6 +133,7 @@ export function ScanExperience() {
 
     setCameraState("starting");
     setAnalysisResponse(null);
+    setRecommendationResponse(null);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -186,6 +201,7 @@ export function ScanExperience() {
       stopCamera();
       setCameraState("captured");
       setAnalysisResponse(null);
+      setRecommendationResponse(null);
     } catch {
       setCameraState("error");
     }
@@ -197,26 +213,112 @@ export function ScanExperience() {
     const formData = new FormData();
     formData.append("image", capturedImage.blob, "plotato-food.jpg");
 
-    const response = await fetch("/api/analyze-food", {
-      method: "POST",
-      body: formData,
-    });
-    const payload = (await response.json()) as AnalysisResponse;
-    setAnalysisResponse(payload);
-    setCameraState("complete");
+    try {
+      const response = await fetch("/api/analyze-food", { method: "POST", body: formData });
+      const payload = (await response.json()) as AnalysisResponse;
+      handleAnalysisResponse(payload);
+    } catch {
+      setAnalysisResponse({ status: "provider_error", message: "The food scanner hit a tiny speed bump. Try again in a moment." });
+      setCameraState("complete");
+    }
   }
 
   async function analyzeTypedFood() {
     if (!typedFood.trim()) return;
     setCameraState("analyzing");
-    const response = await fetch("/api/analyze-food", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ foodText: typedFood.trim() }),
-    });
-    const payload = (await response.json()) as AnalysisResponse;
+    try {
+      const response = await fetch("/api/analyze-food", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ foodText: typedFood.trim() }),
+      });
+      const payload = (await response.json()) as AnalysisResponse;
+      handleAnalysisResponse(payload);
+    } catch {
+      setAnalysisResponse({ status: "provider_error", message: "The food scanner hit a tiny speed bump. Try again in a moment." });
+      setCameraState("complete");
+    }
+  }
+
+  function handleAnalysisResponse(payload: AnalysisResponse) {
     setAnalysisResponse(payload);
     setCameraState("complete");
+    if (payload.status === "success") void startRecommendation(payload.analysis);
+  }
+
+  async function startRecommendation(analysis: NonNullable<Extract<AnalysisResponse, { status: "success" }>['analysis']>) {
+    setRecommendationResponse(null);
+    setFeedbackOpen(false);
+    setRecommendationLoading(true);
+    recommendationStartedAt.current = Date.now();
+    try {
+      const storage = createPreferenceStorage();
+      const response = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          food: analysis,
+          preferences: storage.getPreferences(),
+          feedback: storage.getFeedback(),
+        }),
+      });
+      const payload = (await response.json()) as RecommendationResponse;
+      await keepLoadingVisible();
+      setRecommendationResponse(payload);
+    } catch {
+      await keepLoadingVisible();
+      setRecommendationResponse({
+        status: "failure",
+        failure: { code: "NETWORK_ERROR", message: "Plotato could not reach the recommendation desk." },
+      });
+    } finally {
+      setRecommendationLoading(false);
+    }
+  }
+
+  async function keepLoadingVisible() {
+    const configuredMinimum = Number(process.env.NEXT_PUBLIC_RECOMMENDATION_MIN_LOADING_MS);
+    const minimum = Number.isFinite(configuredMinimum) && configuredMinimum >= 0 ? Math.min(configuredMinimum, 800) : 280;
+    const remaining = minimum - (Date.now() - recommendationStartedAt.current);
+    if (remaining > 0) await new Promise((resolve) => window.setTimeout(resolve, remaining));
+  }
+
+  function recordFeedback(action: "seen" | "watched" | "rejected", reason?: FeedbackReason) {
+    if (recommendationResponse?.status !== "success") return;
+    const { candidate } = recommendationResponse.recommendation.primary;
+    createPreferenceStorage().addFeedback({
+      tmdbId: candidate.id,
+      mediaType: candidate.mediaType,
+      action,
+      reason,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  function handleSeen() {
+    recordFeedback("seen");
+  }
+
+  function handleReject(reason: FeedbackReason) {
+    recordFeedback("rejected", reason);
+    setFeedbackOpen(false);
+    if (analysisResponse?.status === "success") void startRecommendation(analysisResponse.analysis);
+  }
+
+  function handleSpinAgain() {
+    recordFeedback("rejected", "wrong-mood");
+    if (analysisResponse?.status === "success") void startRecommendation(analysisResponse.analysis);
+  }
+
+  async function handleShare() {
+    if (recommendationResponse?.status !== "success") return;
+    const candidate = recommendationResponse.recommendation.primary.candidate;
+    const shareData = { title: `Plotato pick: ${candidate.title}`, text: recommendationResponse.recommendation.explanation, url: candidate.tmdbUrl };
+    if (navigator.share) {
+      await navigator.share(shareData).catch(() => undefined);
+      return;
+    }
+    await navigator.clipboard?.writeText(`${shareData.title} - ${shareData.url}`);
   }
 
   function retake() {
@@ -225,6 +327,9 @@ export function ScanExperience() {
     }
     setCapturedImage(null);
     setAnalysisResponse(null);
+    setRecommendationResponse(null);
+    setRecommendationLoading(false);
+    setFeedbackOpen(false);
     setCameraState("idle");
   }
 
@@ -238,10 +343,11 @@ export function ScanExperience() {
         </Link>
         <div>
           <p className="eyebrow">Food scan</p>
-          <h1>Frame your plate.</h1>
+          <h1>{recommendationActive ? "Your watch match." : "Frame your plate."}</h1>
         </div>
       </header>
 
+      {!recommendationActive ? <>
       <section className="scan-camera-card" aria-label="Camera scanner">
         {cameraState === "streaming" || cameraState === "starting" ? (
           <div className="camera-preview">
@@ -374,6 +480,32 @@ export function ScanExperience() {
           <p className="eyebrow">Tiny plot twist</p>
           <h2>{analysisResponse.message}</h2>
         </section>
+      ) : null}
+      </> : null}
+
+      {recommendationLoading && analysisResponse?.status === "success" ? (
+        <RecommendationLoading analysis={analysisResponse.analysis} reducedMotion={reducedMotion} />
+      ) : null}
+
+      {!recommendationLoading && recommendationResponse?.status === "success" ? (
+        <RecommendationResult
+          recommendation={recommendationResponse.recommendation}
+          feedbackOpen={feedbackOpen}
+          onOpenFeedback={() => setFeedbackOpen(true)}
+          onSeen={handleSeen}
+          onReject={handleReject}
+          onSpinAgain={handleSpinAgain}
+          onShare={() => void handleShare()}
+        />
+      ) : null}
+
+      {!recommendationLoading && recommendationResponse?.status === "failure" ? (
+        <RecommendationFailure
+          failure={recommendationResponse.failure}
+          onRetry={() => {
+            if (analysisResponse?.status === "success") void startRecommendation(analysisResponse.analysis);
+          }}
+        />
       ) : null}
     </main>
   );
