@@ -1,74 +1,33 @@
-type MockAnalysisResponse = {
-  status: "ready";
-  source: "image" | "typed-food";
-  dishName: string;
-  containsFood: true;
-  confidence: number;
-  attributes: {
-    richness: number;
-    spiciness: number;
-    comfort: number;
-    freshness: number;
-    playfulness: number;
-    intensity: number;
-  };
-};
+import { createTypedFoodAnalysis, analyzeFoodImage } from "@/lib/server/food-analysis";
+import { AnalysisResponseSchema } from "@/lib/shared/food-analysis";
 
-function jsonResponse(body: MockAnalysisResponse | { error: string }, status = 200) {
+function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json",
-    },
+    headers: { "content-type": "application/json" },
   });
 }
 
 export async function POST(request: Request) {
-  const contentType = request.headers.get("content-type") ?? "";
-
-  if (contentType.includes("multipart/form-data")) {
-    const formData = await request.formData();
-    const file = formData.get("image");
-    if (!(file instanceof File)) {
-      return jsonResponse({ error: "Missing image." }, 400);
+  try {
+    const contentType = request.headers.get("content-type") ?? "";
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("image");
+      const result = await analyzeFoodImage(file instanceof File ? file : null);
+      return jsonResponse(AnalysisResponseSchema.parse(result), result.status === "success" ? 200 : 422);
     }
 
-    return jsonResponse({
-      status: "ready",
-      source: "image",
-      dishName: "mock food plate",
-      containsFood: true,
-      confidence: 0.88,
-      attributes: {
-        richness: 0.72,
-        spiciness: 0.58,
-        comfort: 0.8,
-        freshness: 0.45,
-        playfulness: 0.67,
-        intensity: 0.62,
-      },
+    const payload = (await request.json().catch(() => null)) as { foodText?: string } | null;
+    const foodText = payload?.foodText?.trim();
+    if (!foodText) {
+      return jsonResponse({ status: "invalid_image", message: "Tell Plotato what is on the plate." }, 400);
+    }
+    return jsonResponse(createTypedFoodAnalysis(foodText));
+  } catch (error) {
+    console.error("Plotato analyze-food internal error", {
+      errorName: error instanceof Error ? error.name : "unknown",
     });
+    return jsonResponse({ status: "internal_error", message: "Plotato lost the plot for a second. Try again." }, 500);
   }
-
-  const payload = (await request.json().catch(() => null)) as { foodText?: string } | null;
-  const foodText = payload?.foodText?.trim();
-  if (!foodText) {
-    return jsonResponse({ error: "Missing typed food." }, 400);
-  }
-
-  return jsonResponse({
-    status: "ready",
-    source: "typed-food",
-    dishName: foodText,
-    containsFood: true,
-    confidence: 0.76,
-    attributes: {
-      richness: 0.6,
-      spiciness: 0.5,
-      comfort: 0.7,
-      freshness: 0.5,
-      playfulness: 0.66,
-      intensity: 0.52,
-    },
-  });
 }

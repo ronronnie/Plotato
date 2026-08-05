@@ -62,15 +62,15 @@ Task markers:
 
 ## 5. Moderation and Food Analysis
 
-- [~] Add server-side upload validation.
-- [ ] Strip metadata where possible.
-- [ ] Add image moderation using OpenAI server-side.
-- [ ] Return neutral unsafe-image state.
-- [~] Add food detection.
-- [ ] Return no-food-detected state.
-- [ ] Add low-confidence confirmation state.
-- [~] Add structured food-analysis schema with Zod.
-- [ ] Delete original uploaded image after processing.
+- [x] Add server-side upload validation.
+- [x] Strip metadata in the browser before upload and document the server boundary.
+- [x] Add image moderation using OpenAI server-side.
+- [x] Return neutral unsafe-image state.
+- [x] Add food detection.
+- [x] Return no-food-detected state.
+- [x] Add low-confidence confirmation state.
+- [x] Add structured food-analysis schema with Zod.
+- [x] Delete temporary image data after processing.
 
 ## 6. Recommendation Engine
 
@@ -126,7 +126,7 @@ Task markers:
 
 - [x] Add unit tests for preference-storage utilities.
 - [x] Add unit tests for core UI states.
-- [ ] Add schema validation tests.
+- [x] Add schema, policy, low-confidence, unsafe-image, non-food, and provider-timeout unit tests with mocked upstream calls.
 - [ ] Add recommendation ranking tests.
 - [x] Add Playwright coverage for valid image upload, invalid file rejection, permission-denied fallback, and typed-food fallback.
 - [ ] Add accessibility checks.
@@ -134,12 +134,13 @@ Task markers:
 - [x] Run type checks.
 - [x] Run unit tests.
 - [x] Run production build.
-- [ ] Review API key exposure.
-- [ ] Review privacy behavior for uploaded images.
+- [x] Review API key exposure.
+- [x] Review privacy behavior for uploaded images.
 - [ ] Review TMDb and JustWatch attribution requirements.
 
 ## Completed Work Log
 
 - [x] Scaffolded the mobile-first visual foundation with Plotato metadata, design tokens, responsive shell, reusable UI components, first-run preferences, local preference persistence, mock recent pairings, reduced-motion handling, and unit-test coverage for storage and core UI states.
-- [x] Implemented the `/scan` camera and image-selection journey with explicit camera permission request, rear-camera preference, capture preview, flash capability detection, gallery upload, typed-food fallback, client-side image validation, browser re-encoding for compression and metadata stripping, concise privacy copy, and a temporary mocked analysis endpoint.
+- [x] Implemented the `/scan` camera and image-selection journey with explicit camera permission request, rear-camera preference, capture preview, flash capability detection, gallery upload, typed-food fallback, client-side image validation, browser re-encoding for compression and metadata stripping, concise privacy copy, and a server-side analysis endpoint.
 - [x] Verified the scan journey with four mobile Chromium Playwright tests.
+- [x] Replaced the image-analysis mock with server-only OpenAI moderation and vision analysis using strict Zod-validated response states, bounded retries, timeouts, and neutral user-facing errors.

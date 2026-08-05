@@ -101,6 +101,8 @@ Output:
 - confidence
 - neutral error state when unsafe or invalid
 
+The response is a discriminated union with these statuses: `success`, `unsafe_image`, `non_food`, `low_confidence`, `invalid_image`, `provider_error`, and `internal_error`. Moderation details never cross the API boundary.
+
 ### `POST /api/recommend`
 
 Input:
@@ -130,22 +132,26 @@ Output:
 
 1. Browser validates that a file was selected.
 2. Browser checks file type and rough size before upload.
-3. Browser compresses oversized images when possible.
-4. Server validates final size and MIME type.
-5. Server strips metadata such as EXIF location where possible.
-6. Server runs moderation before food analysis.
-7. Server deletes the original image after processing unless the user explicitly saves a derivative share asset.
+3. Browser re-encodes the image to JPEG, resizing and stripping metadata where supported.
+4. Server validates final MIME type and byte size again.
+5. Server sends the temporary compressed image as a data URL to `omni-moderation-latest`.
+6. Clearly unsafe or graphic moderation results return `unsafe_image` with neutral copy; categories are never returned.
+7. A configured vision model receives the same temporary image with strict JSON schema output.
+8. Zod validates every structured field and rejects malformed provider output.
+9. If no food is detected, return `non_food`; if confidence is below threshold, return `low_confidence` for confirmation.
+10. The image data URL is cleared in a `finally` block and is never persisted or logged.
 
 ## Moderation and Food-Analysis Pipeline
 
 1. Validate file size and type.
-2. Remove metadata.
-3. Run image moderation.
-4. If unsafe, return a neutral rejection without detailed categories.
-5. Detect whether the image contains food.
-6. If no food is detected, return a retry or typed-food fallback state.
-7. If confidence is low, ask the user to confirm or edit the dish.
-8. Analyse the meal only when moderation and food detection pass.
+2. Run image moderation with `omni-moderation-latest`.
+3. If unsafe, return a neutral rejection without detailed categories.
+4. Analyse the meal with the server-configured vision model.
+5. If no food is detected, return a retry or typed-food fallback state.
+6. If confidence is low, ask the user to confirm or edit the dish.
+7. Analyse only after moderation passes.
+
+The server uses a 12-second abort timeout and one retry for transient network, 408, 429, and 5xx failures. Logs contain only error type, MIME type, and byte count.
 
 Expected structured output:
 
@@ -250,9 +256,11 @@ type FeedbackRecord = {
 ## Environment Variables
 
 - `OPENAI_API_KEY` - Server-side OpenAI API key.
+- `OPENAI_VISION_MODEL` - Server-side vision model used for structured food analysis.
 - `TMDB_API_KEY` - Server-side TMDb API key.
 - `NEXT_PUBLIC_APP_URL` - Public site URL for metadata and share links.
 - `IMAGE_MAX_BYTES` - Optional image upload limit.
+- `FOOD_CONFIDENCE_THRESHOLD` - Optional 0-1 confirmation threshold; defaults to `0.65`.
 
 No secret environment variable should be exposed to browser bundles.
 
@@ -266,6 +274,8 @@ No secret environment variable should be exposed to browser bundles.
 - Return neutral safety errors without detailed moderation categories.
 - Keep API keys server-side.
 - Use typed schemas for request and response validation.
+- Set `store: false` on vision requests and clear temporary image data after each request.
+- Apply request timeouts and bounded retries; never log raw image data or provider payloads.
 - Rate limit image-analysis endpoints before production launch.
 
 ## Accessibility Approach

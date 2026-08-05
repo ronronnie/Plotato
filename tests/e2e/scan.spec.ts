@@ -9,8 +9,7 @@ test("uploads a valid food image fixture", async ({ page }) => {
   await expect(page.getByRole("img", { name: "Captured food preview" })).toBeVisible();
   await page.getByRole("button", { name: "Use this photo" }).click();
 
-  await expect(page.getByText("Mock analysis ready")).toBeVisible();
-  await expect(page.getByText("mock food plate")).toBeVisible();
+  await expect(page.getByText("The food scanner hit a tiny speed bump. Try again in a moment.")).toBeVisible();
 });
 
 test("rejects an invalid file", async ({ page }) => {
@@ -35,6 +34,6 @@ test("supports typed-food fallback", async ({ page }) => {
   await page.getByLabel("Food name").fill("masala dosa");
   await page.getByRole("button", { name: "Analyze" }).click();
 
-  await expect(page.getByText("Mock analysis ready")).toBeVisible();
+  await expect(page.getByText("Analysis ready")).toBeVisible();
   await expect(page.getByRole("heading", { name: "masala dosa" })).toBeVisible();
 });

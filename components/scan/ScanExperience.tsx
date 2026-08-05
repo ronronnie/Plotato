@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
+import type { AnalysisResponse } from "@/lib/shared/food-analysis";
 import {
   ACCEPTED_IMAGE_TYPES,
   processImageFile,
@@ -34,12 +35,6 @@ type TorchCapabilities = MediaTrackCapabilities & {
 
 type TorchConstraint = MediaTrackConstraintSet & {
   torch?: boolean;
-};
-
-type AnalysisResult = {
-  dishName: string;
-  confidence: number;
-  source: "image" | "typed-food";
 };
 
 const fallbackCopy: Partial<Record<CameraState, { title: string; body: string }>> = {
@@ -100,7 +95,7 @@ export function ScanExperience() {
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [typedFood, setTypedFood] = useState("");
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [analysisResponse, setAnalysisResponse] = useState<AnalysisResponse | null>(null);
 
   useEffect(() => {
     return () => {
@@ -123,7 +118,7 @@ export function ScanExperience() {
     }
 
     setCameraState("starting");
-    setAnalysis(null);
+    setAnalysisResponse(null);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -190,7 +185,7 @@ export function ScanExperience() {
       });
       stopCamera();
       setCameraState("captured");
-      setAnalysis(null);
+      setAnalysisResponse(null);
     } catch {
       setCameraState("error");
     }
@@ -206,8 +201,8 @@ export function ScanExperience() {
       method: "POST",
       body: formData,
     });
-    const payload = (await response.json()) as AnalysisResult;
-    setAnalysis(payload);
+    const payload = (await response.json()) as AnalysisResponse;
+    setAnalysisResponse(payload);
     setCameraState("complete");
   }
 
@@ -219,8 +214,8 @@ export function ScanExperience() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ foodText: typedFood.trim() }),
     });
-    const payload = (await response.json()) as AnalysisResult;
-    setAnalysis(payload);
+    const payload = (await response.json()) as AnalysisResponse;
+    setAnalysisResponse(payload);
     setCameraState("complete");
   }
 
@@ -229,7 +224,7 @@ export function ScanExperience() {
       URL.revokeObjectURL(capturedImage.previewUrl);
     }
     setCapturedImage(null);
-    setAnalysis(null);
+    setAnalysisResponse(null);
     setCameraState("idle");
   }
 
@@ -351,18 +346,33 @@ export function ScanExperience() {
 
       {cameraState === "analyzing" ? (
         <section className="analysis-card" aria-live="polite">
-          <p className="eyebrow">Mock analysis</p>
+          <p className="eyebrow">Analysis</p>
           <h2>Checking the plate...</h2>
         </section>
       ) : null}
 
-      {cameraState === "complete" && analysis ? (
+      {cameraState === "complete" && analysisResponse?.status === "success" ? (
         <section className="analysis-card" aria-live="polite">
-          <p className="eyebrow">Mock analysis ready</p>
-          <h2>{analysis.dishName}</h2>
+          <p className="eyebrow">Analysis ready</p>
+          <h2>{analysisResponse.analysis.dish_name}</h2>
           <p>
-            Source: {analysis.source}. Confidence: {Math.round(analysis.confidence * 100)}%.
+            Food found. Confidence: {Math.round(analysisResponse.analysis.confidence * 100)}%.
           </p>
+        </section>
+      ) : null}
+
+      {cameraState === "complete" && analysisResponse?.status === "low_confidence" ? (
+        <section className="analysis-card" aria-live="polite">
+          <p className="eyebrow">One more look</p>
+          <h2>Is this {analysisResponse.analysis.dish_name}?</h2>
+          <p>{analysisResponse.message}</p>
+        </section>
+      ) : null}
+
+      {cameraState === "complete" && analysisResponse && analysisResponse.status !== "success" && analysisResponse.status !== "low_confidence" ? (
+        <section className="analysis-card" aria-live="polite">
+          <p className="eyebrow">Tiny plot twist</p>
+          <h2>{analysisResponse.message}</h2>
         </section>
       ) : null}
     </main>
