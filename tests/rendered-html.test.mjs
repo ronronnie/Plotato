@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-
-const templateRoot = new URL("../", import.meta.url);
 
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -25,36 +23,35 @@ async function render() {
   );
 }
 
-test("server-renders the Plotato product shell", async () => {
+test("server-renders the Plotato visual foundation", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
   assert.match(html, /<title>Plotato<\/title>/i);
+  assert.match(html, /What are we eating today\?/);
+  assert.match(html, /Scan my food/);
+  assert.match(html, /Upload a photo/);
+  assert.match(html, /Type the food instead/);
+  assert.match(html, /Recent pairings/);
   assert.match(html, /Set the table\./);
   assert.match(html, /JioHotstar/);
-  assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
+  assert.doesNotMatch(html, /SnackSpin|react-loading-skeleton|codex-preview/);
 });
 
-test("removes starter preview files and keeps product metadata", async () => {
-  const [page, layout, css, packageJson] = await Promise.all([
+test("keeps the scaffold componentized and tokenized", async () => {
+  const [page, css, storage, tasks] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
+    readFile(new URL("../lib/client/preference-storage.ts", import.meta.url), "utf8"),
+    readFile(new URL("../TASKS.md", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /Plotato/);
-  assert.match(page, /JioHotstar/);
-  assert.match(page, /What are we eating today\?/);
-  assert.match(page, /Keep people and private information outside the frame/);
-  assert.match(page, /TONIGHT&apos;S PAIRING/);
+  assert.match(page, /HomeScreen/);
+  assert.match(css, /--color-ink:\s*#161616/i);
+  assert.match(css, /--color-paper:\s*#fff7e8/i);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(layout, /title:\s*"Plotato"/);
-  assert.match(layout, /images:\s*\["\/og\.png"\]/);
-  assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-
-  await access(new URL("../public/og.png", import.meta.url));
-  await assert.rejects(access(new URL("../app/_sites-preview", templateRoot)));
+  assert.match(storage, /plotato\.preferences\.v1/);
+  assert.match(tasks, /Scaffolded the mobile-first visual foundation/);
 });
