@@ -90,6 +90,13 @@ test("runs the mocked happy path through analysis, loading, reveal, and feedback
   await expect(page.getByText("TV SERIES")).toBeVisible();
   await expect(page.getByText("Runtime unknown")).not.toBeVisible();
 
+  await page.getByRole("button", { name: "Share" }).click();
+  await expect(page.getByRole("heading", { name: "Make it a tiny premiere." })).toBeVisible();
+  await page.getByRole("button", { name: /Square/ }).click();
+  await expect(page.getByRole("img", { name: "Square share card preview" })).toBeVisible();
+  await expect(page.getByText("Your original food photo is never included unless you opt in.")).toBeVisible();
+  await page.getByRole("button", { name: "Close share dialog" }).click();
+
   await page.getByRole("button", { name: "Not feeling this" }).click();
   await expect(page.getByText("Already watched")).toBeVisible();
   await page.getByRole("button", { name: "Wrong mood" }).click();

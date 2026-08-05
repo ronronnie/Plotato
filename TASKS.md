@@ -113,13 +113,13 @@ Task markers:
 
 ## 9. Sharing
 
-- [ ] Generate vertical story card.
-- [ ] Generate square share card.
-- [ ] Include food illustration or cropped food image.
-- [ ] Include poster placeholder or licensed poster image.
-- [ ] Include comic halftone texture.
-- [ ] Include provider text placeholder.
-- [ ] Include Plotato watermark.
+- [x] Generate vertical 1080 x 1920 story card locally in the browser.
+- [x] Generate square 1080 x 1080 share card locally in the browser.
+- [x] Include a CSS-style food illustration fallback and optional processed food image.
+- [x] Include poster artwork with preserved aspect ratio or an illustrated fallback.
+- [x] Include decorative pop-art halftone and burst elements.
+- [x] Include provider text and TMDb/JustWatch attribution.
+- [x] Include Plotato logo placeholder and watermark.
 - [ ] Add product URL or QR-code placeholder for future use.
 
 ## 10. Testing and Production Hardening
@@ -147,3 +147,4 @@ Task markers:
 - [x] Replaced the image-analysis mock with server-only OpenAI moderation and vision analysis using strict Zod-validated response states, bounded retries, timeouts, and neutral user-facing errors.
 - [x] Added the deterministic TMDb recommendation pipeline with safe AI-assisted reranking limited to verified candidate IDs, regional availability, attribution, filtering, backups, and edge-case fixtures.
 - [x] Added the analysis-to-recommendation loading and reveal journey with animated/reduced-motion reels, poster fallback, provider actions, sharing, local feedback, retry handling, and error-state Playwright coverage.
+- [x] Added local canvas-generated Story and Square share cards with Web Share, save-image, and copy-link fallbacks. Original food images remain excluded unless the user opts in to using the processed in-memory image.

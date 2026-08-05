@@ -312,17 +312,6 @@ export function ScanExperience() {
     if (analysisResponse?.status === "success") void startRecommendation(analysisResponse.analysis);
   }
 
-  async function handleShare() {
-    if (recommendationResponse?.status !== "success") return;
-    const candidate = recommendationResponse.recommendation.primary.candidate;
-    const shareData = { title: `Plotato pick: ${candidate.title}`, text: recommendationResponse.recommendation.explanation, url: candidate.tmdbUrl };
-    if (navigator.share) {
-      await navigator.share(shareData).catch(() => undefined);
-      return;
-    }
-    await navigator.clipboard?.writeText(`${shareData.title} - ${shareData.url}`);
-  }
-
   useEffect(() => {
     const foodFromHome = searchParams.get("food")?.trim();
     if (!foodFromHome || autoSubmittedFood.current === foodFromHome) return;
@@ -507,7 +496,8 @@ export function ScanExperience() {
           onSeen={handleSeen}
           onReject={handleReject}
           onSpinAgain={handleSpinAgain}
-          onShare={() => void handleShare()}
+          foodName={analysisResponse?.status === "success" ? analysisResponse.analysis.dish_name : "your meal"}
+          processedFoodImage={capturedImage}
         />
       ) : null}
 

@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { StickerChip } from "@/components/ui/StickerChip";
+import { ShareSheet } from "./ShareSheet";
 import type { Recommendation } from "@/lib/server/recommendation-types";
+import type { ProcessedImage } from "@/lib/client/image-processing";
 
 const feedbackOptions = [
   ["already-watched", "Already watched"],
@@ -20,10 +23,12 @@ type RecommendationResultProps = {
   onSeen: () => void;
   onReject: (reason: (typeof feedbackOptions)[number][0]) => void;
   onSpinAgain: () => void;
-  onShare: () => void;
+  foodName: string;
+  processedFoodImage?: ProcessedImage | null;
 };
 
-export function RecommendationResult({ recommendation, feedbackOpen, onOpenFeedback, onSeen, onReject, onSpinAgain, onShare }: RecommendationResultProps) {
+export function RecommendationResult({ recommendation, feedbackOpen, onOpenFeedback, onSeen, onReject, onSpinAgain, foodName, processedFoodImage }: RecommendationResultProps) {
+  const [shareOpen, setShareOpen] = useState(false);
   const candidate = recommendation.primary.candidate;
   const provider = recommendation.availability.find((item) => item.type === "flatrate" || item.type === "free" || item.type === "ads") ?? recommendation.availability[0];
   const watchUrl = provider?.link ?? candidate.tmdbUrl;
@@ -70,7 +75,7 @@ export function RecommendationResult({ recommendation, feedbackOpen, onOpenFeedb
           <div className="result-action-row">
             <Button onClick={onSeen} variant="secondary">Seen it</Button>
             <Button onClick={onSpinAgain} variant="ghost">Spin again</Button>
-            <Button onClick={onShare} variant="ghost">Share</Button>
+            <Button onClick={() => setShareOpen(true)} variant="ghost">Share</Button>
           </div>
           <Button aria-expanded={feedbackOpen} onClick={onOpenFeedback} variant="ghost">
             Not feeling this
@@ -88,6 +93,7 @@ export function RecommendationResult({ recommendation, feedbackOpen, onOpenFeedb
         ) : null}
         <Link className="back-to-scan" href="/scan">Back to scan</Link>
       </div>
+      {shareOpen ? <ShareSheet foodName={foodName} onClose={() => setShareOpen(false)} processedFoodImage={processedFoodImage} recommendation={recommendation} /> : null}
     </section>
   );
 }

@@ -300,6 +300,12 @@ No secret environment variable should be exposed to browser bundles.
 - Avoid noisy patterns behind body text.
 - Use status regions for loading and toast announcements.
 
+## Share Card Rendering
+
+Share cards are rendered in the browser with an in-memory HTML canvas. The renderer supports 1080 x 1920 Story and 1080 x 1080 Square formats, preserves poster aspect ratio with contain-fit drawing, and uses a generated illustrated panel when a poster is missing or cannot be loaded. The card includes the food name, verified TMDb title, match explanation, provider name, Plotato placeholder, pop-art decoration, and TMDb/JustWatch attribution.
+
+The original food photo is never part of a card by default. When the user explicitly opts in, only the already processed object URL held in memory can be drawn; no raw file or generated card is uploaded or persisted. Web Share with files is preferred, with download and copy-link fallbacks for browsers without file sharing. Story cards reserve top and bottom space for platform UI overlays, and the share dialog remains keyboard-operable with a bounded scroll region.
+
 ## Testing Strategy
 
 - Vitest unit tests for LocalStorage utilities, schemas, and recommendation helpers.
