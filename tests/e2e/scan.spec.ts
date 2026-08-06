@@ -73,6 +73,15 @@ test("home typed-food match enters the recommendation journey", async ({ page })
   await expect(page.getByRole("heading", { name: "Butter & Joy" })).toBeVisible();
 });
 
+test("home scan action navigates to the scanner", async ({ page }) => {
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Skip for now" }).click();
+  await expect(page.getByRole("link", { name: "Scan my food" })).toHaveAttribute("href", "/scan");
+  await page.getByRole("link", { name: "Scan my food" }).click();
+  await expect(page).toHaveURL(/\/scan$/);
+  await expect(page.getByRole("heading", { name: "Frame your plate." })).toBeVisible();
+});
+
 test("runs the mocked happy path through analysis, loading, reveal, and feedback", async ({ page }) => {
   const recommendationRequests: Array<Record<string, unknown>> = [];
   await page.route("**/api/recommend", async (route) => {

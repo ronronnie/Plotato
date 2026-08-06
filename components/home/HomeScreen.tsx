@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
@@ -92,9 +93,9 @@ export function HomeScreen() {
           <p className="hero-subtitle">Scan your plate and get one movie or TV match before dinner loses steam.</p>
 
           <div className="hero-actions">
-            <Button onClick={() => window.location.assign("/scan")} size="lg" variant="primary">
+            <Link className="ui-button ui-button-primary ui-button-lg" href="/scan">
               Scan my food
-            </Button>
+            </Link>
             <label className="upload-control">
               Upload a photo
               <input
